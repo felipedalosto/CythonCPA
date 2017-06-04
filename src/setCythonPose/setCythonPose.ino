@@ -13,7 +13,22 @@ float max_array2[] = {720, 920, 730, 2100, 610, 600, 580};
 float min_degree[] = {-90,-86, -90, -83, -90, -90,-90};
 float max_degree[] = {90, 65, 90, 62, 90, 90, 90};*/
 
+const int red_buttonPin = 3;     // the number of the pushbutton pin
+const int red_ledPin =  5;      // the number of the LED pin
+
+const int green_buttonPin = 4;     // the number of the pushbutton pin
+const int green_ledPin =  6; 
+
+// variables will change:
+int green_buttonState = 0;         // variable for reading the pushbutton status
+int red_buttonState = 0; 
+
 int cython_is_buzy = 0;
+int red_is_buzy = 0;
+int green_is_buzy = 0;
+int red_request = 0;
+int green_request = 0;
+
 
 void pick(){
   
@@ -120,12 +135,12 @@ void pick_green(){
   Serial2.println("#7 P900 #6 P1970 #5 P2150 #4 P1050 #3 P1950 #2 P1400 #1 P1990 #0 P2250 T1000 <cd> "); // abaixa 1 e 3
   delay(1000);
   nh.spinOnce();
-  Serial2.println("#7 P1600 #6 P1970 #5 P2150 #4 P1050 #3 P1950 #2 P1400 #1 P2010 #0 P2250 T1000 <cd> "); // fecha a garra 
+  Serial2.println("#7 P1700 #6 P1970 #5 P2150 #4 P1050 #3 P1950 #2 P1400 #1 P2010 #0 P2250 T1000 <cd> "); // fecha a garra 
   delay(1000);  
-  Serial2.println("#7 P1600 #6 P1970 #5 P2150 #4 P1050 #3 P2000 #2 P1400 #1 P1850 #0 P2250 T1000 <cd> "); // volta o 1 e o 3 
+  Serial2.println("#7 P1700 #6 P1970 #5 P2150 #4 P1050 #3 P2000 #2 P1400 #1 P1850 #0 P2250 T1000 <cd> "); // volta o 1 e o 3 
   delay(1000); 
   nh.spinOnce(); 
-  Serial2.println("#7 P1600 #6 P1500 #5 P2150 #4 P1500 #3 P2130 #2 P1500 #1 P1600 #0 P2300 T1000 <cd> "); // Posicao inicial 
+  Serial2.println("#7 P1700 #6 P1500 #5 P2150 #4 P1500 #3 P2130 #2 P1500 #1 P1600 #0 P2300 T1000 <cd> "); // Posicao inicial 
   delay(1000);
   cython_state.data = 0;
   cython.publish(&cython_state);
@@ -145,16 +160,15 @@ void pick_red(){
   nh.spinOnce();
   Serial2.println("#7 P900 #6 P1500 #5 P2230 #4 P1500 #3 P2110 #2 P1500 #1 P1830 #0 P2270 T1000 <cd> "); // Posicao final 
   delay(1500);
-  Serial2.println("#7 P900 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1890 #0 P2270 T1000 <cd> "); // Posicao final 
+  Serial2.println("#7 P900 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1910 #0 P2270 T1000 <cd> "); // Posicao final 
   delay(1500);
   nh.spinOnce();
-  Serial2.println("#7 P1600 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1890 #0 P2270 T1000 <cd> "); // Posicao final 
+  Serial2.println("#7 P1600 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1910 #0 P2270 T1000 <cd> "); // Posicao final 
   delay(1500);
-  Serial2.println("#7 P1600 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1600 #0 P2270 T1000 <cd> "); // Posicao final 
+  Serial2.println("#7 P1600 #6 P1500 #5 P2210 #4 P1500 #3 P2110 #2 P1500 #1 P1910 #0 P2270 T1000 <cd> "); // Posicao final 
   delay(1500);
   nh.spinOnce();
-  Serial2.println("#7 P1600 #6 P1500 #5 P2150 #4 P1500 #3 P2130 #2 P1500 #1 P1600 #0 P2300 T1000 <cd> "); // Posicao inicial 
-  delay(1000);
+  
   cython_state.data = 0;
   cython.publish(&cython_state);
   nh.spinOnce();
@@ -175,23 +189,35 @@ void initial_position(){
 
 void messageCb( const std_msgs::Int8& pose){
   
-  pick();
+  
   if (pose.data == 1){
-    drop_green();
-    pick_green();
-    drop_ready();
     
-    nh.spinOnce();
-    cython.publish(&cython_state); 
+    if (green_is_buzy == 0) { 
+      digitalWrite(green_ledPin, HIGH);
+      pick();
+      drop_green();
+      green_is_buzy = 1;
+      nh.spinOnce();
+      cython.publish(&cython_state);
+       
+    }
+    
   }
 
   if (pose.data == 2){
-    drop_red();
-    pick_red();
-    drop_ready();
-    nh.spinOnce();
-    cython.publish(&cython_state); 
+    
+    if (red_is_buzy == 0) { 
+      digitalWrite(red_ledPin, HIGH);
+      pick();
+      drop_red();
+      red_is_buzy = 1;
+      nh.spinOnce();
+      cython.publish(&cython_state);
+       
+    }
+    
   }
+  
   initial_position();
   nh.spinOnce();
 }
@@ -209,6 +235,11 @@ void garra(){
 void setup()
 { 
   pinMode(13, OUTPUT);
+  pinMode(red_ledPin, OUTPUT);
+  pinMode(green_ledPin, OUTPUT);
+  // initialize the pushbutton pin as an input:
+  pinMode(red_buttonPin, INPUT);
+  pinMode(green_buttonPin, INPUT);
   nh.getHardware()->setBaud(57600);
   nh.initNode();
   nh.subscribe(sub);
@@ -219,8 +250,45 @@ void setup()
 }
 
 void loop()
-{  
-  cython_state.data = 1;
+{ 
+  green_buttonState = digitalRead(green_buttonPin);
+  if (green_buttonState == HIGH) {
+     green_request = 1;
+  } 
+
+  red_buttonState = digitalRead(red_buttonPin);
+
+  if (red_buttonState == HIGH) {
+    // turn LED on:
+    red_request = 1;
+  }
+  
+  if (red_request == 1) {
+    digitalWrite(red_ledPin, HIGH);
+    
+      if (cython_state.data == 0){
+        pick_red();        
+        drop_ready();
+        nh.spinOnce();
+        red_request = 0;
+        red_is_buzy = 0;
+        digitalWrite(red_ledPin, LOW);
+      }   
+  }
+
+  if (green_request == 1) {
+    
+      if (cython_state.data == 0){
+        pick_green();        
+        drop_ready();
+        nh.spinOnce();
+        green_request = 0;
+        green_is_buzy = 0;
+        digitalWrite(green_ledPin, LOW);
+      }   
+  }
+  
+  //cython_state.data = 0;
   nh.spinOnce();
   delay(10);
    
